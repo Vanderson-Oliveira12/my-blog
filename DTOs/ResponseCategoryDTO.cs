@@ -1,24 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MyBlog.Models
+namespace MyBlog.DTOs
 {
-    public class Category : Base
+    public class ResponseCategoryDTO
     {
-       
-
+        public Guid Id { get; private set; }
         public string Title { get; private set; }
         public string Description { get; private set; }
 
-        public Category()
+
+        public ResponseCategoryDTO()
         {
             
         }
-
-        public Category(string title, string description)
+        public ResponseCategoryDTO(Guid id, string title, string description)
         {
+            Id = id;
             Title = title;
             Description = description;
         }
-
     }
 }

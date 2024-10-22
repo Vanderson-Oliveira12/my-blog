@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MyBlog.DTOs;
 using MyBlog.Models;
 using MyBlog.Services.Interfaces;
 
@@ -45,9 +46,14 @@ namespace MyBlog.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<Category>>> CreateCategoryAsync([FromBody] Category categoryModel)
+        public async Task<ActionResult<ApiResponse<CreateCategoryDTO>>> CreateCategoryAsync([FromBody] CreateCategoryDTO createCategoryDTO)
         {
-            var response = await _categoryService.CreateCategoryAsync(categoryModel);
+
+            if ( !ModelState.IsValid ) {
+                return BadRequest(ModelState);
+            }
+
+            var response = await _categoryService.CreateCategoryAsync(createCategoryDTO);
 
             if ( response.IsSuccessful )
             {
