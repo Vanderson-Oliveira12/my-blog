@@ -2,15 +2,16 @@
 using MyBlog.Repositories.Interfaces;
 using MyBlog.Repositories;
 using MyBlog.DTOs;
+using MyBlog.ViewModels;
 
 namespace MyBlog.Services.Interfaces
 {
     public interface ICategoryService
     {
-        Task<ApiResponse<IEnumerable<ResponseCategoryDTO>>> GetCategoriesAsync();   
-        Task<ApiResponse<ResponseCategoryDTO>> GetCategoryByIdAsync(Guid id);
-        Task<ApiResponse<RequestCategoryDTO>> CreateCategoryAsync(RequestCategoryDTO requestCategoryDTO);
-        Task<ApiResponse<ResponseCategoryDTO>> UpdateCategoryAsync(Guid id, RequestCategoryDTO requestCategoryDTO);
-        Task<ApiResponse<bool>> DeleteCategoryAsync(Guid id);
+        Task<IEnumerable<CategoryDTO>> GetAllAsync();   
+        Task<CategoryDTO> GetByIdAsync(Guid id);
+        Task<Guid> CreateAsync(CreateCategoryViewModel model);
+        Task<Guid> UpdateAsync(Guid id, UpdateCategoryViewModel model);
+        Task DeleteAsync(Guid id);
     }
 }

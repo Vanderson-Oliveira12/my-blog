@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(opt =>
 {
-    opt.SuppressModelStateInvalidFilter = true;
+    //opt.SuppressModelStateInvalidFilter = true;
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -23,9 +23,7 @@ string myConnectionDB = builder.Configuration.GetConnectionString("DefaultConnec
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(myConnectionDB, ServerVersion.AutoDetect(myConnectionDB)));
 
-
-builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
-
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddLogging();

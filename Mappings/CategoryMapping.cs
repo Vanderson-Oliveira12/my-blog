@@ -1,41 +1,31 @@
 ﻿using MyBlog.DTOs;
 using MyBlog.Models;
+using MyBlog.ViewModels;
 
 namespace MyBlog.Mappings
 {
-    public class CategoryMapping
+    public static class CategoryMapping
     {
-        public static RequestCategoryDTO categoryToRequestCategoryDTO (Category category)
-        {
-            return new RequestCategoryDTO
-            {
-               Title = category.Title,
-               Description = category.Description,
-            };
-        }
+        public static Category AsEntity(this CreateCategoryViewModel? model)
+           => model is null
+            ? null
+            : new Category(title: model.Title, description: model.Description);
 
-        public static Category requestCategoryDTOtoCategory(RequestCategoryDTO requestCategoryDTO)
-        {
-            return new Category(title: requestCategoryDTO.Title, description: requestCategoryDTO.Description);
-        }
+        public static Category AsEntity(this UpdateCategoryViewModel? model)
+           => model is null
+            ? null
+            : new Category(title: model.Title, description: model.Description);
 
-        public static ResponseCategoryDTO categoryToResponseCategoryDTO(Category category) {
-            return new ResponseCategoryDTO(id: category.Id, title: category.Title, description: category.Description);
-        }
 
-        public static IEnumerable<ResponseCategoryDTO> categoryListToResponseCategoryDTOList(IEnumerable<Category> categoryList)
-        {
-            var responseCategoryDTOList = new List<ResponseCategoryDTO>();
+        public static CategoryDTO AsDTO(this Category? model)
+           => model is null
+            ? null
+            : new CategoryDTO { Id = model.Id, Title = model.Title, Description = model.Description };
 
-            foreach(var category in categoryList)
-            {
+        public static IEnumerable<CategoryDTO> AsEnumerableDTO(this IEnumerable<Category>? model)
+            => model is null
+            ? null
+            : model.Select(AsDTO).ToArray();
 
-                ResponseCategoryDTO responseCategoryItem = new ResponseCategoryDTO(id: category.Id, title: category.Title, description: category.Description);
-
-                responseCategoryDTOList.Add(responseCategoryItem);
-            }
-
-            return responseCategoryDTOList;
-        }
     }
 }

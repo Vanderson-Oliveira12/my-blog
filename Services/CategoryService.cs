@@ -1,101 +1,74 @@
-﻿using FluentValidation;
-using MyBlog.Context;
-using MyBlog.DTOs;
+﻿using MyBlog.DTOs;
 using MyBlog.Mappings;
-using MyBlog.Models;
-using MyBlog.Repositories;
 using MyBlog.Repositories.Interfaces;
 using MyBlog.Services.Interfaces;
-using MyBlog.Validations;
-using System.ComponentModel.DataAnnotations;
+using MyBlog.ViewModels;
 
 namespace MyBlog.Services
 {
     public class CategoryService : ICategoryService
     {
+        private readonly ICategoryRepository _categoryRepository;
 
-        private readonly IBaseRepository<Category> _baseRepository;
-
-        public CategoryService(IBaseRepository<Category> baseRepository)
+        public CategoryService(ICategoryRepository categoryRepository)
         {
-            _baseRepository = baseRepository;
+            _categoryRepository = categoryRepository;
         }
 
-        public async Task<ApiResponse<IEnumerable<ResponseCategoryDTO>>> GetCategoriesAsync()
+        public async Task<IEnumerable<CategoryDTO>> GetAllAsync()
         {
+            var categories = await _categoryRepository.GetAllAsync();
 
-            var categories = await _baseRepository.GetAllAsync();
-
-            var categoriesListDTO = CategoryMapping.categoryListToResponseCategoryDTOList(categories).ToList();
-
-            return ApiResponse<IEnumerable<ResponseCategoryDTO>>.Success(data: categoriesListDTO);
+            return categories.AsEnumerableDTO();
         }
 
-        public async Task<ApiResponse<ResponseCategoryDTO>> GetCategoryByIdAsync(Guid id)
+        public async Task<CategoryDTO> GetByIdAsync(Guid id)
         {
-            var category = await _baseRepository.GetByIdAsync(id);
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            return category.AsDTO();
+        }
+
+        public async Task<Guid> CreateAsync(CreateCategoryViewModel model)
+        {
+            var category = model.AsEntity();
+
+            _categoryRepository.Create(category);
+
+            await _categoryRepository.UnitOfWork.SaveChangesAsync();
+
+            return category.Id;
+        }
+
+        public async Task<Guid> UpdateAsync(Guid id, UpdateCategoryViewModel model)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id);
 
             if ( category == null )
-            {
-                return ApiResponse<ResponseCategoryDTO>.Fail(message: "Categoria não encontrada", statusCode: 400);
-            }
+                throw new Exception("Categoria não existe");
 
-            var categoryDTO = CategoryMapping.categoryToResponseCategoryDTO(category);
+            var categoryUpdated = model.AsEntity();
+          
+            category.SetTitle(categoryUpdated.Title);
+            category.SetDescription(categoryUpdated.Description);
 
-            return ApiResponse<ResponseCategoryDTO>.Success(categoryDTO);
+           _categoryRepository.Update(category);
+
+           await _categoryRepository.UnitOfWork.SaveChangesAsync();
+
+            return category.Id;
         }
 
-        public async Task<ApiResponse<RequestCategoryDTO>> CreateCategoryAsync(RequestCategoryDTO createCategoryDTO)
+        public async Task DeleteAsync(Guid id)
         {
-            Category category = CategoryMapping.requestCategoryDTOtoCategory(createCategoryDTO);
-
-            var categoryCreated = await _baseRepository.CreateAsync(category);
-
-            if ( categoryCreated == null )
-            {
-                return ApiResponse<RequestCategoryDTO>.Fail(message: "Não foi possível criar a sua categoria", statusCode: 400);
-            }
-
-            return ApiResponse<RequestCategoryDTO>.Success(createCategoryDTO);
-        }
-
-        public async Task<ApiResponse<ResponseCategoryDTO>> UpdateCategoryAsync(Guid id, RequestCategoryDTO requestCategoryDTO)
-        {
-            var category = await _baseRepository.GetByIdAsync(id);
+            var category = await _categoryRepository.GetByIdAsync(id);
 
             if ( category == null )
-            {
-                return ApiResponse<ResponseCategoryDTO>.Fail(message: "Categoria não encontrada", statusCode: 404);
-            }
+                throw new Exception("Categoria não existe");
 
-            if ( !String.IsNullOrEmpty(requestCategoryDTO.Title) )
-            {
-                category.ChangeTitle(requestCategoryDTO.Title);
-            }
+            _categoryRepository.Delete(category);
 
-            if ( !String.IsNullOrEmpty(requestCategoryDTO.Description) )
-            {
-                category.ChangeTitle(requestCategoryDTO.Description);
-            }
-
-            await _baseRepository.UpdateAsync(category);
-
-            var responseCategoryDTO = CategoryMapping.categoryToResponseCategoryDTO(category);
-
-            return ApiResponse<ResponseCategoryDTO>.Success(responseCategoryDTO);
-        }
-        public async Task<ApiResponse<bool>> DeleteCategoryAsync(Guid id)
-        {
-            var category = await _baseRepository.GetByIdAsync(id);
-
-            if(category == null )
-            {
-                return ApiResponse<bool>.Fail(message: "Categoria não encontrada", statusCode: 404);
-            }
-
-            await _baseRepository.DeleteAsync(id);
-
-            return ApiResponse<bool>.Success(data: true, message: "Categoria deletada com sucesso");
+            await _categoryRepository.UnitOfWork.SaveChangesAsync();
         }
 
     }

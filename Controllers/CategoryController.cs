@@ -1,10 +1,6 @@
-﻿using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
-using MyBlog.CustomExtensions;
-using MyBlog.DTOs;
-using MyBlog.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using MyBlog.Services.Interfaces;
-using MyBlog.Validations;
+using MyBlog.ViewModels;
 
 namespace MyBlog.Controllers
 {
@@ -21,91 +17,52 @@ namespace MyBlog.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Category>>>> GetAllCategoriesAsync()
+        public async Task<ActionResult> GetAllAsync()
         {
-           var response = await _categoryService.GetCategoriesAsync();
+            var categories = await _categoryService.GetAllAsync();
 
-            if ( response.IsSuccessful ) {
-                return Ok(response);
-            }
-
-            return StatusCode(response.StatusCode, response);
+            return Ok(categories);
         }
 
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponse<Category>>> GetCategoryByIdAsync(Guid id)
+        [HttpGet("{id:Guid}")]
+        public async Task<ActionResult> GetByIdAsync(Guid id)
         {
-            var response = await _categoryService.GetCategoryByIdAsync(id);
+            var category = await _categoryService.GetByIdAsync(id);
 
-            if ( response.IsSuccessful )
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(response.StatusCode, response);
+            return category is null ? NotFound() : Ok(category);
         }
 
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<RequestCategoryDTO>>> CreateCategoryAsync([FromBody] RequestCategoryDTO requestCategoryDTO)
+        public async Task<ActionResult> CreateAsync([FromBody] CreateCategoryViewModel model)
         {
-
             if ( !ModelState.IsValid )
-            {
-                var errorModel = ModelState.FailInValidateModel<RequestCategoryDTO>();
+                return UnprocessableEntity(model);
+        
+            var categoryId = await _categoryService.CreateAsync(model);
 
-                return BadRequest(errorModel);
-            }
-
-
-            var response = await _categoryService.CreateCategoryAsync(requestCategoryDTO);
-
-            if ( response.IsSuccessful )
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(response.StatusCode, response);
+            return StatusCode(201, categoryId);
         }
 
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<ResponseCategoryDTO>>> UpdateCategoryAsync(Guid id, [FromBody] RequestCategoryDTO requestCategoryDTO)
+        [HttpPut("{id:Guid}")]
+        public async Task<ActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateCategoryViewModel model)
         {
+            if ( !ModelState.IsValid )
+                return UnprocessableEntity(model);
 
-            CategoryValidator validator = new CategoryValidator();
+            var categoryId = await _categoryService.UpdateAsync(id, model);
 
-            ValidationResult result = validator.Validate(requestCategoryDTO);
-
-            if ( !result.IsValid ) {
-
-                var responseModel = result.FailInValidateFluentModel<ResponseCategoryDTO>();
-
-                return BadRequest(responseModel);
-            }
-
-            var response = await _categoryService.UpdateCategoryAsync(id, requestCategoryDTO);
-
-            if ( response.IsSuccessful )
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(response.StatusCode, response);
+            return Ok(categoryId);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteCategoryAsync(Guid id)
+        [HttpDelete("{id:Guid}")]
+        public async Task<ActionResult> DeleteAsync([FromRoute] Guid id)
         {
-            var response = await _categoryService.DeleteCategoryAsync(id);
+            await _categoryService.DeleteAsync(id);
 
-            if ( response.IsSuccessful )
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(response.StatusCode, response);
+            return Ok();
         }
     }
 }

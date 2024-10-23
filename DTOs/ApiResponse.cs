@@ -1,4 +1,4 @@
-﻿namespace MyBlog.Models
+﻿namespace MyBlog.DTOs
 {
     public class ApiResponse<T>
     {
@@ -25,7 +25,7 @@
             {
                 Message = message,
                 StatusCode = statusCode,
-                data = default(T),
+                data = default,
                 IsSuccessful = false,
                 Errors = errors ?? new Dictionary<string, List<string>>()
             };

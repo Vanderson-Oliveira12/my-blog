@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using FluentValidation.Results;
-using MyBlog.Models;
+using MyBlog.DTOs;
 
 namespace MyBlog.CustomExtensions
 {

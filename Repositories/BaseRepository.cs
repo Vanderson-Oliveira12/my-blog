@@ -2,57 +2,38 @@
 using MyBlog.Context;
 using MyBlog.Models;
 using MyBlog.Repositories.Interfaces;
+using MyBlog.UoW;
 using System.Collections.Generic;
 
-namespace MyBlog.Repositories
+namespace MyBlog.Repositories;
+public abstract class BaseRepository<T> : IBaseRepository<T> where T : Base
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : Base
+    public abstract IUnitOfWork UnitOfWork { get; }
+
+    private readonly AppDbContext _context;
+    private readonly DbSet<T> _dbSet;
+
+    public BaseRepository(AppDbContext context)
     {
-
-        private readonly AppDbContext _context;
-
-        public BaseRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<IEnumerable<T>> GetAllAsync()
-        {
-            return await _context.Set<T>().AsNoTracking().ToListAsync();
-        }
-        public async Task<T> GetByIdAsync(Guid id)
-        {
-            return _context.Set<T>().AsNoTracking().FirstOrDefault(x => x.Id == id);
-        }
-
-        public async Task<T> CreateAsync(T model)
-        {
-            await _context.Set<T>().AddAsync(model);
-
-            await _context.SaveChangesAsync();
-
-            return model;
-        }
-
-        public async Task<T> UpdateAsync(T model)
-        {
-
-            _context.Set<T>().Update(model);
-            await _context.SaveChangesAsync();
-
-            return model;
-        }
-        public async Task DeleteAsync(Guid id)
-        {
-            var item = await GetByIdAsync(id);
-
-            if ( item != null )
-            {
-
-                _context.Set<T>().Remove(item);
-
-                await _context.SaveChangesAsync();
-            }
-        }
+        _context = context;
+        _dbSet = _context.Set<T>();
     }
+
+    public async Task<IEnumerable<T>> GetAllAsync()
+        => await _dbSet.AsNoTracking().ToListAsync();
+
+    public async Task<T> GetByIdAsync(Guid id)
+        => _dbSet.Where(entity => entity.Id == id).AsNoTracking().FirstOrDefault();
+
+    public void Create(T model)
+        => _dbSet.Add(model);
+
+    public void Update(T model)
+        => _dbSet.Update(model);
+
+    public void Delete(T model)
+        => _dbSet.Remove(model);
+
+    //MEotdo de uma linha retorna arrow function
+
 }
