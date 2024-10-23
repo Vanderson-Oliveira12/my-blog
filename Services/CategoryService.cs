@@ -1,10 +1,13 @@
-﻿using MyBlog.Context;
+﻿using FluentValidation;
+using MyBlog.Context;
 using MyBlog.DTOs;
 using MyBlog.Mappings;
 using MyBlog.Models;
 using MyBlog.Repositories;
 using MyBlog.Repositories.Interfaces;
 using MyBlog.Services.Interfaces;
+using MyBlog.Validations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyBlog.Services
 {
@@ -42,33 +45,44 @@ namespace MyBlog.Services
             return ApiResponse<ResponseCategoryDTO>.Success(categoryDTO);
         }
 
-        public async Task<ApiResponse<CreateCategoryDTO>> CreateCategoryAsync(CreateCategoryDTO createCategoryDTO)
+        public async Task<ApiResponse<RequestCategoryDTO>> CreateCategoryAsync(RequestCategoryDTO createCategoryDTO)
         {
-            Category category = CategoryMapping.createCategoryDTOtoCategory(createCategoryDTO);
+            Category category = CategoryMapping.requestCategoryDTOtoCategory(createCategoryDTO);
 
             var categoryCreated = await _baseRepository.CreateAsync(category);
 
             if ( categoryCreated == null )
             {
-                return ApiResponse<CreateCategoryDTO>.Fail(message: "Não foi possível criar a sua categoria", statusCode: 400);
+                return ApiResponse<RequestCategoryDTO>.Fail(message: "Não foi possível criar a sua categoria", statusCode: 400);
             }
 
-            return ApiResponse<CreateCategoryDTO>.Success(createCategoryDTO);
+            return ApiResponse<RequestCategoryDTO>.Success(createCategoryDTO);
         }
 
-        public async Task<ApiResponse<Category>> UpdateCategoryAsync(Guid id, Category categoryDTO)
+        public async Task<ApiResponse<ResponseCategoryDTO>> UpdateCategoryAsync(Guid id, RequestCategoryDTO requestCategoryDTO)
         {
             var category = await _baseRepository.GetByIdAsync(id);
 
             if ( category == null )
             {
-                return ApiResponse<Category>.Fail(message: "Categoria não encontrada", statusCode: 404);
+                return ApiResponse<ResponseCategoryDTO>.Fail(message: "Categoria não encontrada", statusCode: 404);
             }
 
+            if ( !String.IsNullOrEmpty(requestCategoryDTO.Title) )
+            {
+                category.ChangeTitle(requestCategoryDTO.Title);
+            }
 
-            await _baseRepository.UpdateAsync(categoryDTO);
+            if ( !String.IsNullOrEmpty(requestCategoryDTO.Description) )
+            {
+                category.ChangeTitle(requestCategoryDTO.Description);
+            }
 
-            return ApiResponse<Category>.Success(category);
+            await _baseRepository.UpdateAsync(category);
+
+            var responseCategoryDTO = CategoryMapping.categoryToResponseCategoryDTO(category);
+
+            return ApiResponse<ResponseCategoryDTO>.Success(responseCategoryDTO);
         }
         public async Task<ApiResponse<bool>> DeleteCategoryAsync(Guid id)
         {

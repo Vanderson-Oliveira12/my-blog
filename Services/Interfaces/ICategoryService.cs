@@ -7,11 +7,10 @@ namespace MyBlog.Services.Interfaces
 {
     public interface ICategoryService
     {
-
         Task<ApiResponse<IEnumerable<ResponseCategoryDTO>>> GetCategoriesAsync();   
         Task<ApiResponse<ResponseCategoryDTO>> GetCategoryByIdAsync(Guid id);
-        Task<ApiResponse<CreateCategoryDTO>> CreateCategoryAsync(CreateCategoryDTO createCategoryDTO);
-        Task<ApiResponse<Category>> UpdateCategoryAsync(Guid id, Category category);
+        Task<ApiResponse<RequestCategoryDTO>> CreateCategoryAsync(RequestCategoryDTO requestCategoryDTO);
+        Task<ApiResponse<ResponseCategoryDTO>> UpdateCategoryAsync(Guid id, RequestCategoryDTO requestCategoryDTO);
         Task<ApiResponse<bool>> DeleteCategoryAsync(Guid id);
     }
 }

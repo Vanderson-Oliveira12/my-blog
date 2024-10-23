@@ -5,18 +5,18 @@ namespace MyBlog.Mappings
 {
     public class CategoryMapping
     {
-        public static CreateCategoryDTO categoryToCreateCategoryDTO (Category category)
+        public static RequestCategoryDTO categoryToRequestCategoryDTO (Category category)
         {
-            return new CreateCategoryDTO
+            return new RequestCategoryDTO
             {
                Title = category.Title,
                Description = category.Description,
             };
         }
 
-        public static Category createCategoryDTOtoCategory(CreateCategoryDTO createCategoryDTO)
+        public static Category requestCategoryDTOtoCategory(RequestCategoryDTO requestCategoryDTO)
         {
-            return new Category(title: createCategoryDTO.Title, description: createCategoryDTO.Description);
+            return new Category(title: requestCategoryDTO.Title, description: requestCategoryDTO.Description);
         }
 
         public static ResponseCategoryDTO categoryToResponseCategoryDTO(Category category) {

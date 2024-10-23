@@ -20,5 +20,13 @@ namespace MyBlog.Models
             Description = description;
         }
 
+        public void ChangeTitle(string title) { 
+            Title = title;
+        }
+
+        public void ChangeDescription(string description) {
+            Description = description;
+        }
+
     }
 }

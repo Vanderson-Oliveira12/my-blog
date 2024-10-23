@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using MyBlog.CustomExtensions;
 using MyBlog.DTOs;
 using MyBlog.Models;
 using MyBlog.Services.Interfaces;
+using MyBlog.Validations;
 
 namespace MyBlog.Controllers
 {
@@ -46,14 +48,18 @@ namespace MyBlog.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<CreateCategoryDTO>>> CreateCategoryAsync([FromBody] CreateCategoryDTO createCategoryDTO)
+        public async Task<ActionResult<ApiResponse<RequestCategoryDTO>>> CreateCategoryAsync([FromBody] RequestCategoryDTO requestCategoryDTO)
         {
 
-            if ( !ModelState.IsValid ) {
-                return BadRequest(ModelState);
+            if ( !ModelState.IsValid )
+            {
+                var errorModel = ModelState.FailInValidateModel<RequestCategoryDTO>();
+
+                return BadRequest(errorModel);
             }
 
-            var response = await _categoryService.CreateCategoryAsync(createCategoryDTO);
+
+            var response = await _categoryService.CreateCategoryAsync(requestCategoryDTO);
 
             if ( response.IsSuccessful )
             {
@@ -65,9 +71,21 @@ namespace MyBlog.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Category>>>> UpdateCategoryAsync(Guid id, [FromBody] Category categoryModel)
+        public async Task<ActionResult<ApiResponse<ResponseCategoryDTO>>> UpdateCategoryAsync(Guid id, [FromBody] RequestCategoryDTO requestCategoryDTO)
         {
-            var response = await _categoryService.UpdateCategoryAsync(id, categoryModel);
+
+            CategoryValidator validator = new CategoryValidator();
+
+            ValidationResult result = validator.Validate(requestCategoryDTO);
+
+            if ( !result.IsValid ) {
+
+                var responseModel = result.FailInValidateFluentModel<ResponseCategoryDTO>();
+
+                return BadRequest(responseModel);
+            }
+
+            var response = await _categoryService.UpdateCategoryAsync(id, requestCategoryDTO);
 
             if ( response.IsSuccessful )
             {
@@ -89,7 +107,5 @@ namespace MyBlog.Controllers
 
             return StatusCode(response.StatusCode, response);
         }
-
-
     }
 }
